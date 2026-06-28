@@ -16,4 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // Tính điểm trung bình của thợ
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.technicianId = :technicianId")
     Double getAverageRating(Long technicianId);
+    @Query("SELECT r.technicianId, AVG(r.rating) FROM Review r GROUP BY r.technicianId")
+    List<Object[]> avgRatingByTechnician();
 }

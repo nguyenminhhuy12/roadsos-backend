@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,9 +22,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -37,10 +39,13 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()  // ← mở tất cả cho demo
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories").permitAll()
+                .requestMatchers("/api/categories/**").hasRole("ADMIN")
+                .requestMatchers("/api/statistics/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -55,13 +60,39 @@ public class SecurityConfig {
         @Autowired
         private JwtUtil jwtUtil;
 
+        @Autowired
+        private UserRepository userRepository;
+
         @Override
         protected void doFilterInternal(HttpServletRequest request,
                                         HttpServletResponse response,
                                         FilterChain chain)
                 throws ServletException, IOException {
 
-            // Bỏ qua filter hoàn toàn cho demo
+            String header = request.getHeader("Authorization");
+
+            if (header != null && header.startsWith("Bearer ")) {
+                String token = header.replace("Bearer ", "");
+                try {
+                    String phone = jwtUtil.extractPhone(token);
+                    User user = userRepository.findByPhone(phone).orElse(null);
+
+                    if (user != null) {
+                        // Thêm ROLE_ prefix theo chuẩn Spring Security
+                        String role = "ROLE_" + user.getRole().name();
+                        UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                phone,
+                                null,
+                                List.of(new SimpleGrantedAuthority(role))
+                            );
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
+                } catch (Exception e) {
+                    // Token không hợp lệ → bỏ qua
+                }
+            }
+
             chain.doFilter(request, response);
         }
     }
