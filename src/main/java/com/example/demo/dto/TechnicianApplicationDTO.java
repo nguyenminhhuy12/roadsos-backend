@@ -13,4 +13,5 @@ public class TechnicianApplicationDTO {
     private String idCard;
     private String note;
     private Integer age;
+    private String imageUrl;
 }

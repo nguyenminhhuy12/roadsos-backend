@@ -53,6 +53,7 @@ public class TechnicianApplicationService {
         app.setSpecialization(dto.getSpecialization());
         app.setIdCard(dto.getIdCard());
         app.setNote(dto.getNote());
+        app.setImageUrl(dto.getImageUrl());
 
         return applicationRepository.save(app);
     }

@@ -18,6 +18,7 @@ public class TechnicianApplication {
     private String specialization;  // chuyên môn: honda, yamaha, all...
     private String idCard;          // CCCD
     private String note;            // ghi chú thêm
+    private String imageUrl;
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status = ApplicationStatus.PENDING;
     private String rejectReason;    // lý do từ chối
