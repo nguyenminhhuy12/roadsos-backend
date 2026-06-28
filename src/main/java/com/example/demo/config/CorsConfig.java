@@ -12,16 +12,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**")
-                    .allowedOrigins(
-                        "http://localhost",
-                        "http://localhost:8080",
-                        "https://anbatocom-7ff5f.web.app",
-                        "https://anbatocom-7ff5f.firebaseapp.com"
-                    )
+                registry.addMapping("/**")
+                    .allowedOriginPatterns("*")
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                     .allowedHeaders("*")
-                    .allowCredentials(true);
+                    .allowCredentials(false);
             }
         };
     }
