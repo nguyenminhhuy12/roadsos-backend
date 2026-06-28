@@ -67,35 +67,38 @@ public class SecurityConfig {
 
         @Override
         protected void doFilterInternal(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        FilterChain chain)
-                throws ServletException, IOException {
-
-            String header = request.getHeader("Authorization");
-
-            if (header != null && header.startsWith("Bearer ")) {
-                String token = header.replace("Bearer ", "");
-                try {
-                    String phone = jwtUtil.extractPhone(token);
-                    User user = userRepository.findByPhone(phone).orElse(null);
-
-                    if (user != null) {
-                        // Thêm ROLE_ prefix theo chuẩn Spring Security
-                        String role = "ROLE_" + user.getRole().name();
-                        UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(
-                                phone,
-                                null,
-                                List.of(new SimpleGrantedAuthority(role))
-                            );
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                    }
-                } catch (Exception e) {
-                    // Token không hợp lệ → bỏ qua
-                }
-            }
-
-            chain.doFilter(request, response);
-        }
+						                HttpServletResponse response,
+						                FilterChain chain)
+				throws ServletException, IOException {
+				
+			String header = request.getHeader("Authorization");
+			System.out.println("🔑 Header: " + header);
+			System.out.println("📍 URI: " + request.getRequestURI());
+			
+			if (header != null && header.startsWith("Bearer ")) {
+				String token = header.replace("Bearer ", "");
+			try {
+				String phone = jwtUtil.extractPhone(token);
+				System.out.println("📱 Phone: " + phone);
+				User user = userRepository.findByPhone(phone).orElse(null);
+				System.out.println("👤 User: " + (user != null ? user.getRole() : "null"));
+			
+			if (user != null) {
+				String role = "ROLE_" + user.getRole().name();
+				UsernamePasswordAuthenticationToken auth =
+				    new UsernamePasswordAuthenticationToken(
+				        phone,
+				        null,
+				        List.of(new SimpleGrantedAuthority(role))
+				    );
+				SecurityContextHolder.getContext().setAuthentication(auth);
+			}
+		} catch (Exception e) {
+			System.out.println("❌ Lỗi token: " + e.getMessage());
+		}
+			}
+			
+			chain.doFilter(request, response);
+			}
     }
 }
