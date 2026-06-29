@@ -38,11 +38,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ← thêm dòng này
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            	.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()	
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/technician-application/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories").permitAll()
