@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -50,6 +53,18 @@ public class SecurityConfig {
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -72,16 +87,16 @@ public class SecurityConfig {
 				throws ServletException, IOException {
 				
 			String header = request.getHeader("Authorization");
-			System.out.println("🔑 Header: " + header);
-			System.out.println("📍 URI: " + request.getRequestURI());
+			System.out.println("Header: " + header);
+			System.out.println("URI: " + request.getRequestURI());
 			
 			if (header != null && header.startsWith("Bearer ")) {
 				String token = header.replace("Bearer ", "");
 			try {
 				String phone = jwtUtil.extractPhone(token);
-				System.out.println("📱 Phone: " + phone);
+				System.out.println("Phone: " + phone);
 				User user = userRepository.findByPhone(phone).orElse(null);
-				System.out.println("👤 User: " + (user != null ? user.getRole() : "null"));
+				System.out.println("User: " + (user != null ? user.getRole() : "null"));
 			
 			if (user != null) {
 				String role = "ROLE_" + user.getRole().name();
@@ -94,7 +109,7 @@ public class SecurityConfig {
 				SecurityContextHolder.getContext().setAuthentication(auth);
 			}
 		} catch (Exception e) {
-			System.out.println("❌ Lỗi token: " + e.getMessage());
+			System.out.println("Lỗi token: " + e.getMessage());
 		}
 			}
 			
