@@ -23,4 +23,8 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
+    @PostMapping("/otp-login")
+    public ResponseEntity<LoginResponse> otpLogin(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.otpLogin(request));
+    }
 }

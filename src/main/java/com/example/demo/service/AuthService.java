@@ -68,4 +68,20 @@ public class AuthService {
 
         return "Đăng ký thành công!";
     }
+    public LoginResponse otpLogin(LoginRequest request) {
+        log.info("📡 Bắt đầu đăng nhập OTP với SĐT: {}", request.getPhone());
+        User user = userRepository.findByPhone(request.getPhone())
+                .orElseThrow(() -> {
+                    log.warn("❌ Không tìm thấy SĐT (OTP): {}", request.getPhone());
+                    return new RuntimeException("Số điện thoại chưa đăng ký tài khoản!");
+                });
+        log.info("✅ Tìm thấy user (OTP): {}", user.getName());
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            throw new RuntimeException(
+                "Tài khoản bị khóa! Lý do: " + user.getBanReason());
+        }
+        String token = jwtUtil.generateToken(user.getPhone());
+        log.info("✅ Đăng nhập OTP thành công! Token đã tạo cho: {}", user.getPhone());
+        return new LoginResponse(user.getId(), token, user.getPhone(), user.getName(), user.getRole());
+    }
 }
